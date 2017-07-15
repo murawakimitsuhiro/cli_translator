@@ -51,6 +51,7 @@ int main (int argc, char *argv[]) {
   } else {
     strcpy(target_uri, "/");
   }
+  //strcpy(target_uri, "/api/v1.5/tr.json/translate?key=trnsl.1.1.20170715T123719Z.40387c7fe671307f.5024e55b8a40ceeb39a0e1efdc5992117513de75");
 
   /* target_portno の設定 */
   if (argc >= 4) {
@@ -89,7 +90,7 @@ int main (int argc, char *argv[]) {
   }
 
   /* HTTPのやりとり */
-  send(sofd, "GET ",      strlen("GET "),      0);
+  send(sofd, "POST ",      strlen("POST "),    0);
   send(sofd, target_uri,  strlen(target_uri),  0);
   send(sofd, " HTTP/1.0", strlen(" HTTP/1.0"), 0);
   send(sofd, "\r\n",      strlen("\r\n"),      0);
