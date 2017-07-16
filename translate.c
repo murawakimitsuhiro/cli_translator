@@ -14,11 +14,12 @@ int main(int argc, const char * argv[]) {
     int is_debug = 0;
 
     const char *text;
+    const char *yandex_api_key;
 
     char msg[1000];
     char *host = "translate.yandex.net";
     char *path = "/api/v1.5/tr.json/translate";
-    char *query = "?key=trnsl.1.1.20170715T123719Z.40387c7fe671307f.5024e55b8a40ceeb39a0e1efdc5992117513de75&lang=ja-en&format=plain&text=";
+    char *query = "?lang=ja-en&format=plain&text=";
     int   port = 80;
 
     struct sockaddr_in server;
@@ -39,6 +40,12 @@ int main(int argc, const char * argv[]) {
         printf("      -d view debug log\n");
         return 0;
       }
+    }
+
+    //環境変数からYANDEX_API_KEYを取得
+    yandex_api_key = getenv("YANDEX_API_KEY");
+    if (is_debug) {
+      printf("apiのキーは%s", yandex_api_key);
     }
 
     // IPアドレスの解決
@@ -88,14 +95,13 @@ int main(int argc, const char * argv[]) {
     }
 
     //HTTPの各種パラメータを設定
-    sprintf(msg, "GET %s%s%s HTTP/1.0\r\nHost: %s\r\n\r\n", path, query, text, host);
+    sprintf(msg, "GET %s%s%s&key=%s HTTP/1.0\r\nHost: %s\r\n\r\n", path, query, text, yandex_api_key, host);
     if (is_debug) {
       printf("HTTPS sended :  %s\n", msg);
     }
 
     //http接続でいうwriteと同じもの(strlen = 文字列の長さを取得する)
     SSL_write(ssl, msg, strlen(msg));
-
 
     //帰って来た値を読み込む
     int buf_size = 512;
@@ -120,7 +126,6 @@ int main(int argc, const char * argv[]) {
     if (is_debug) {
       printf("\n\n result : ");
     }
-
 
     //整形の処理
     char end_str = ']'; //終わりの文字列を定義
