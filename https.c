@@ -18,11 +18,12 @@ int main(void) {
     SSL *ssl;
     SSL_CTX *ctx;
 
-    char msg[100];
+    char msg[1000];
 
-    char *host = "web.lobi.co";
-    char *path = "/";
-    int   port = 443;
+    char *host = "translate.yandex.net";
+    char *path = "/api/v1.5/tr.json/translate";
+    char *query = "?key=trnsl.1.1.20170715T123719Z.40387c7fe671307f.5024e55b8a40ceeb39a0e1efdc5992117513de75&text=こんにちは世界&lang=ja-en&format=plain";
+    int   port = 80;//443;
 
     // IPアドレスの解決
     memset(&hints, 0, sizeof(hints));
@@ -56,18 +57,23 @@ int main(void) {
 
     printf("Conntect to %s\n", host);
 
-    sprintf(msg, "GET %s HTTP/1.0\r\nHost: %s\r\n\r\n", path, host);
+    sprintf(msg, "GET %s%s HTTP/1.0\r\nHost: %s\r\n\r\n", path, query, host);
+
+    //sprintf(msg, "GET %s%s", path, query);
+    //sprintf(msg, "HTTP/1.0\r\nHost: %s\r\n\r\n", host);
+
+    printf("access to %s\n", msg);
 
     SSL_write(ssl, msg, strlen(msg));
 
-    int buf_size = 256;
+    int buf_size = 512;//256;
     char buf[buf_size];
     int read_size;
 
     do {
-            read_size = SSL_read(ssl, buf, buf_size);
-            write(1, buf, read_size);
-        } while(read_size > 0);
+      read_size = SSL_read(ssl, buf, buf_size);
+      write(1, buf, read_size);
+    } while(read_size > 0);
 
     SSL_shutdown(ssl);
     SSL_free(ssl);

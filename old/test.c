@@ -78,6 +78,7 @@ int main(int argc, char **argv) {
 
     // HTTPプロトコルの開始 ＆サーバに送信
     sprintf(send_buf, "GET %s%s HTTP/1.0\r\n", url.path, url.query);
+    printf("これが送られています%s", send_buf);
     write(s, send_buf, strlen(send_buf));
 
     sprintf(send_buf, "Host: %s:%d\r\n", url.host, url.port);
