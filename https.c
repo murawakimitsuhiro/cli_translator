@@ -11,6 +11,8 @@
 #include <openssl/err.h>
 
 int main(void) {
+    int is_debug = 0;
+
     char msg[1000];
     char *host = "translate.yandex.net";
     char *path = "/api/v1.5/tr.json/translate";
@@ -74,15 +76,38 @@ int main(void) {
 
 
     //帰って来た値を読み込む
-    int buf_size = 512;//256;
+    int buf_size = 512;
     char buf[buf_size];
     int read_size;
+
+    //帰って来た値から必要な値を抜き出す
+    char json_key[] = "text"; 
+    char *sp;
+    char result[128];
 
     //受信が終わるまでループしながらbufに入れていく
     do {
       read_size = SSL_read(ssl, buf, buf_size);
-      write(1, buf, read_size);
+      sp = strstr(buf, json_key); //jsonKeyが戻り値に含まれているかどうか
+      strcpy(result, sp); //含まれている場合、result配列にコピー
+      if (is_debug) {
+        write(1, buf, read_size);
+      }
     } while(read_size > 0);
+
+
+    //整形の処理
+    char end_str = ']'; //終わりの文字列を定義
+    char *res_end_pt; //終わりの文字列のpointor
+    int end_point;  //終わりの文字列がresultの何番目か
+
+    res_end_pt = strchr(result, end_str); //終わりの文字列を検索
+    end_point = res_end_pt - result - 1;  //resultの何番目で終わらせるべきかを代入
+
+    char t[64]; 
+    strncpy(t, result+8, end_point); //strの先頭+8の位置からend_point文字をtにコピー
+    t[end_point - 8] = '\0';            //取り出した文字数分の最後に'\0'を入れる)
+    printf("%s\n", t);  //結果表示
 
     //あと処理
     SSL_shutdown(ssl);  //sslを閉じる
