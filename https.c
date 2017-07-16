@@ -10,18 +10,36 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
-int main(void) {
+int main(int argc, const char * argv[]) {
     int is_debug = 0;
+
+    const char *text;
 
     char msg[1000];
     char *host = "translate.yandex.net";
     char *path = "/api/v1.5/tr.json/translate";
-    char *query = "?key=trnsl.1.1.20170715T123719Z.40387c7fe671307f.5024e55b8a40ceeb39a0e1efdc5992117513de75&text=こんにちは世界&lang=ja-en&format=plain";
+    char *query = "?key=trnsl.1.1.20170715T123719Z.40387c7fe671307f.5024e55b8a40ceeb39a0e1efdc5992117513de75&lang=ja-en&format=plain&text=";
     int   port = 80;
 
     struct sockaddr_in server;
     struct addrinfo hints;  //こっち側から送るaddrinfo構造体
-    struct addrinfo *res; //getaddrinfoの結果を格納するaddrinfo構造体
+    struct addrinfo *res;   //getaddrinfoの結果を格納するaddrinfo構造体
+
+    //引数受け取り
+    int i;
+    for (i=0; i < argc; i++) {
+      if (i == 1) {
+        text = argv[i];
+      } else if (strncmp(argv[i], "-d", 2) == 0) {
+        is_debug= 1;
+      } else if (strncmp(argv[i], "-h", 2) == 0) {
+        printf("translate help\n");
+        printf("      1st arg please japanese\n");
+        printf("      -h view help\n");
+        printf("      -d view debug log\n");
+        return 0;
+      }
+    }
 
     // IPアドレスの解決
     memset(&hints, 0, sizeof(hints));   //hintsをゼロ埋め
@@ -65,11 +83,15 @@ int main(void) {
     //sslでコネクションを飛ばす
     SSL_connect(ssl);
 
-    printf("Conntect to %s\n", host);
+    if (is_debug) {
+      printf("Conntect to %s\n", host);
+    }
 
     //HTTPの各種パラメータを設定
-    sprintf(msg, "GET %s%s HTTP/1.0\r\nHost: %s\r\n\r\n", path, query, host);
-    printf("HTTPS sended :  %s\n", msg);
+    sprintf(msg, "GET %s%s%s HTTP/1.0\r\nHost: %s\r\n\r\n", path, query, text, host);
+    if (is_debug) {
+      printf("HTTPS sended :  %s\n", msg);
+    }
 
     //http接続でいうwriteと同じもの(strlen = 文字列の長さを取得する)
     SSL_write(ssl, msg, strlen(msg));
@@ -94,6 +116,10 @@ int main(void) {
         write(1, buf, read_size);
       }
     } while(read_size > 0);
+
+    if (is_debug) {
+      printf("\n\n result : ");
+    }
 
 
     //整形の処理
